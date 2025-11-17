@@ -2,10 +2,13 @@ package com.commerce.domain.product.repository;
 
 import com.commerce.domain.product.entity.Product;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Map.Entry;
+import java.util.Objects;
 import java.util.Optional;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
@@ -50,12 +53,15 @@ public class FakeProductRepository implements ProductRepository {
 
   @Override
   public List<Product> findAllById(Collection<Long> ids) {
-    return List.of();
+    return ids.stream()
+        .map(store::get)
+        .filter(Objects::nonNull)
+        .toList();
   }
 
   @Override
   public Optional<Product> findById(final Long id) {
-    return Optional.of(store.get(id));
+    return Optional.ofNullable(store.get(id));
   }
 
   public <S extends Product> S save(S entity) {

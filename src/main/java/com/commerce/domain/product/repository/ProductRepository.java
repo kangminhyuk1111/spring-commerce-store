@@ -11,5 +11,5 @@ public interface ProductRepository {
   Page<Product> findAll(Pageable pageable);
   Page<Product> findByIdIn(Collection<Long> ids, Pageable pageable);
   List<Product> findAllById(Collection<Long> ids);
-  Optional<Product> findById(Long id);
+  Optional<Product> findById(Long productId);
 }

@@ -1,26 +1,126 @@
 ## 📌 Summary
-3단계 기획서를 통해 요구사항을 분석하고 Review테이블과 클래스 설계, Review 정책과 코드 흐름을 정리했습니다.
 
-ReviewService에서 Repository를 참조했었는데 validator도 Repository를 참조하다보니 의존 관계가 명확하지 않아서 클래스를 명확히 지정해주기 위해 Repository를 바로받지 않고 ReviewManager라는 객체를 만들었습니다.
+### 주문 도메인 구현
 
-- ReviewService: 비즈니스 로직 흐름 제어
-- ReviewManager: CRUD
-- ReviewPolicy: 정책 검증(중복, 구매기간 등..)
-- ReviewRepository: 데이터베이스 접근 계층
+이번 PR에서는 주문 도메인의 핵심 기능을 구현했습니다. 사용자가 상품을 직접 주문하거나 장바구니를 통해 주문할 수 있는 기능을 제공합니다.
 
-ReviewManger없이 Repository를 Service에서 바로 접근하는 것 보다 ReviewManager를 만들어서 사용하는게 Service가 책임을 명확하게 할 수 있다고 생각했습니다.
+### 주요 구현 내용
 
-리뷰를 작성 완료하게 되면 성공했습니다만 보여주면 될 것 같아서 굳이 Review를 반환하지 않았습니다.
+#### 1. 도메인 모델 설계
+- **Order (주문 엔티티)**: 주문의 기본 정보를 관리
+  - `orderKey`: UUID 기반의 고유 주문 식별자
+  - `userId`: 주문한 사용자 ID
+  - `totalPrice`: 전체 주문 금액
+  - `orderStatus`: 주문 상태 (PENDING, PAYMENT_SUCCESS 등)
+  - `payType`: 결제 수단 (CREDIT_CARD, SMART_PAY)
+  - `shippingAddress`: 배송지 주소
+
+- **OrderItem (주문 아이템 엔티티)**: 주문 내 개별 상품 정보를 스냅샷으로 저장
+  - 상품 정보 스냅샷 (productName, productPrice)
+  - 수량 및 개별 총액 저장
+
+- **도메인 객체들**:
+  - `NewOrder`, `NewOrderItem`: 주문 생성을 위한 불변 객체 (record)
+  - `OrderRecord`: 주문 조회를 위한 응답 객체 (record)
+  - `OrderStatus`: 주문 상태를 관리하는 enum
+  - `PayType`: 결제 수단을 관리하는 enum
+
+#### 2. 핵심 비즈니스 로직 (OrderService)
+
+**주문 생성 프로세스** (src/main/java/com/commerce/domain/order/application/OrderService.java:44-85)
+1. 주문할 상품 목록 조회
+2. 주문 유효성 검증
+   - 상품 존재 여부
+   - 상품 ID 일치 여부
+   - 재고 충분 여부
+3. 총 금액 계산
+4. 주문 엔티티 생성 및 저장 (PENDING 상태)
+5. 주문 아이템 저장 (상품 정보 스냅샷)
+6. 재고 차감
+
+**주문 조회** (src/main/java/com/commerce/domain/order/application/OrderService.java:87-113)
+- orderKey로 주문 조회
+- 주문 소유자 검증
+- PENDING 상태 확인 (체크아웃 화면용)
+
+#### 3. API 엔드포인트 (OrderController)
+- `POST /v1/orders`: 직접 주문 생성
+- `POST /v1/cart-orders`: 장바구니로부터 주문 생성
+- `GET /v1/orders/{orderKey}`: 주문 조회 (체크아웃 화면)
+
+#### 4. 주요 설계 결정사항
+
+**OrderKey 생성 전략** (src/main/java/com/commerce/domain/order/application/OrderKeyGenerator.java:9-11)
+- UUID + userId 조합으로 생성
+- 고유성 보장 및 사용자별 식별 가능
+
+**상품 정보 스냅샷**
+- 주문 시점의 상품명과 가격을 OrderItem에 저장
+- 향후 상품 정보 변경에도 주문 이력 유지
+
+**재고 차감 시점**
+- 주문 생성 시 즉시 재고 차감
+- Product 엔티티의 decreaseStock() 메서드 활용
 
 ## 💬 Review Points
-1. 추가적으로 생각해볼만한 정책이 있을까요? <- 요구사항 분석/리뷰 정책 검증에 작성했습니다.
-2. 지금 현재 상태에서 Order라는 도메인이 아직 미구현 상태인데 없는 상태에서 대신 할 방법이 있을까요?
-3. Review쪽 패키지 구조를 결정하는게 어렵게 느껴집니다. 준서님은 현재 클래스들을 가지고 패키지 구성을 어떻게 하실 것 같으신지 의견이 궁금합니다.
-4. 강의에서 강사님은 Read쪽을 작성할때 ReviewFinder라는 객체를 하나만들어서 사용하시던데 이 패턴은 어떻게 생각하시나요? 저는 Manager에서 다 해결하면 안될까라는 생각이 들었습니다. 쓰기작업과 읽기작업을 객체로 분리하신 것 같습니다.
+
+### 1. 도메인 모델 설계
+- **Order와 OrderItem의 관계**: 현재 연관관계 매핑 없이 orderId로만 연결되어 있습니다. 이 설계가 적절한가요?
+  - 장점: N+1 문제 회피, 쿼리 최적화 가능
+  - 단점: 객체 지향적 관점에서 연관관계 부족
+
+- **도메인 객체 구조**: Order 엔티티에 비즈니스 로직이 거의 없고 대부분 OrderService에 집중되어 있습니다. 도메인 로직을 엔티티로 이동시키는 것이 좋을까요?
+
+### 2. 동시성 처리
+- **재고 차감 로직** (src/main/java/com/commerce/domain/order/application/OrderService.java:79-82):
+  - 현재 `Product.decreaseStock()` 메서드로 재고를 차감하고 있습니다
+  - 동시에 여러 주문이 들어올 경우 재고 차감의 동시성 문제가 발생할 수 있습니다
+  - 비관적 락(Pessimistic Lock), 낙관적 락(Optimistic Lock), 또는 Redis를 활용한 분산 락 등의 동시성 제어가 필요할까요?
+
+### 3. 트랜잭션 범위
+- **OrderService.createOrder()**:
+  - 주문 생성, 주문 아이템 저장, 재고 차감이 하나의 트랜잭션으로 묶여 있습니다
+  - 트랜잭션 범위가 적절한가요?
+  - 만약 재고 차감 실패 시 롤백 처리가 올바르게 되는지 확인이 필요합니다
+
+### 4. 예외 처리 및 검증
+- **에러 메시지 적절성**:
+  - ErrorType.CART_IS_EMPTY를 주문 검증에 사용 (src/main/java/com/commerce/domain/order/application/OrderService.java:130)
+  - ErrorType.CART_ITEM_NOT_FOUND를 주문 아이템 조회 실패 시 사용 (src/main/java/com/commerce/domain/order/application/OrderService.java:102)
+  - 주문 도메인에 맞는 별도의 에러 타입이 필요할까요?
+
+### 5. OrderKey 생성 전략
+- **OrderKeyGenerator** (src/main/java/com/commerce/domain/order/application/OrderKeyGenerator.java:9-11):
+  - 현재 `UUID + userId` 조합 사용
+  - userId가 노출되는 보안 이슈가 있을 수 있습니다
+  - UUID만 사용하거나, 다른 전략(예: Snowflake ID, ULID)을 고려해볼 만한가요?
+
+### 6. 주문 금액 계산
+- **가격 계산 로직** (src/main/java/com/commerce/domain/order/application/OrderService.java:115-125):
+  - BigDecimal로 정확한 금액 계산을 하고 있습니다
+  - 추후 할인, 쿠폰, 포인트 적용 시 이 로직의 확장성은 어떨까요?
+
+### 7. 코드 품질
+- 검증 로직과 계산 로직을 private 메서드로 잘 분리했습니다
+- 매직 넘버나 하드코딩된 값이 없는지 확인 부탁드립니다
+- 테스트 코드 작성 여부 확인이 필요합니다
 
 ## ✅ Checklist
-- [x] Review 도메인 요구사항 파악
-- [x] Review 도메인 요구사항 바탕으로 코드 구현
-- [] Review 도메인 테스트 코드 작성
+
+- [ ] 주문 생성 기능 동작 확인
+- [ ] 장바구니로부터 주문 생성 동작 확인
+- [ ] 재고 부족 시 예외 처리 확인
+- [ ] 존재하지 않는 상품 주문 시 예외 처리 확인
+- [ ] 다른 사용자의 주문 조회 시 예외 처리 확인
+- [ ] 동시 주문 발생 시 재고 차감 정확성 확인
+- [ ] 트랜잭션 롤백 시나리오 테스트
+- [ ] 단위 테스트 작성 완료
+- [ ] 통합 테스트 작성 완료
 
 ## 📎 References
+
+### 주요 파일 위치
+- 도메인 모델: `src/main/java/com/commerce/domain/order/domain/`
+- 비즈니스 로직: `src/main/java/com/commerce/domain/order/application/OrderService.java`
+- API 컨트롤러: `src/main/java/com/commerce/controller/v1/OrderController.java`
+- 레포지토리: `src/main/java/com/commerce/domain/order/repository/`

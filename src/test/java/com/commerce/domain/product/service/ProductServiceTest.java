@@ -41,11 +41,11 @@ class ProductServiceTest {
 
     @BeforeEach
     void setUp() {
-      final Product product1 = new Product("상품1", "상품1 입니다.", BigDecimal.valueOf(1000000), "http://localhost:33/1", "상품 디테일 설명 페이지");
+      final Product product1 = new Product("상품1", "상품1 입니다.", BigDecimal.valueOf(1000000), "http://localhost:33/1", "상품 디테일 설명 페이지", 10);
       fakeProductRepository.save(product1);
-      final Product product2 = new Product("상품2", "상품2 입니다.", BigDecimal.valueOf(1100000), "http://localhost:33/2", "상품 디테일 설명 페이지");
+      final Product product2 = new Product("상품2", "상품2 입니다.", BigDecimal.valueOf(1100000), "http://localhost:33/2", "상품 디테일 설명 페이지", 10);
       fakeProductRepository.save(product2);
-      final Product product3 = new Product("상품3", "상품3 입니다.", BigDecimal.valueOf(1200000), "http://localhost:33/3", "상품 디테일 설명 페이지");
+      final Product product3 = new Product("상품3", "상품3 입니다.", BigDecimal.valueOf(1200000), "http://localhost:33/3", "상품 디테일 설명 페이지", 10);
       fakeProductRepository.save(product3);
 
       final Category category1 = createCategory("카테고리1");

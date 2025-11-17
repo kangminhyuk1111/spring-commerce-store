@@ -17,7 +17,7 @@ class ProductCategoryTest {
     @Test
     void 상품_카테고리_생성() {
       // given
-      Product product = new Product("노트북", "설명", BigDecimal.valueOf(1000000), "url", "url html");
+      Product product = new Product("노트북", "설명", BigDecimal.valueOf(1000000), "url", "url html", 1000);
       Category category = new Category("전자제품");
 
       // when
