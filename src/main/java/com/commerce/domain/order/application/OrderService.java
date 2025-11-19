@@ -168,4 +168,8 @@ public class OrderService {
       }
     }
   }
+
+  public Order findOrderByKey(String orderKey) {
+    return orderRepository.findByOrderKey(orderKey).orElseThrow(() -> new CoreException(ErrorType.ORDER_NOT_FOUND));
+  }
 }

@@ -23,7 +23,12 @@ public class Payment extends BaseEntity {
   private BigDecimal totalAmount;
 
   @Column(nullable = false)
-  private String paymentMethod;
+  private PaymentMethod paymentMethod;
+
+  @Column(nullable = false)
+  private BigDecimal usedPoint;
+
+  private String externalPaymentKey;
 
   private String transactionId;
 
@@ -31,8 +36,36 @@ public class Payment extends BaseEntity {
 
   private String failureReason;
 
+  public void success(String externalPaymentKey, PaymentMethod paymentMethod, String transactionId) {
+    this.paymentStatus = PaymentStatus.SUCCESS;
+    this.externalPaymentKey = externalPaymentKey;
+    this.paymentMethod = paymentMethod;
+    this.transactionId = transactionId;
+  }
+
+  public void fail(String failureCode, String failureReason) {
+    this.paymentStatus = PaymentStatus.FAIL;
+    this.failureCode = failureCode;
+    this.failureReason = failureReason;
+  }
+
+  public Boolean isPaid() {
+    return this.paymentStatus == PaymentStatus.SUCCESS;
+  }
+
+  public Boolean isFailed() {
+    return this.paymentStatus == PaymentStatus.FAIL;
+  }
+
   public Payment() {
 
+  }
+
+  public Payment(Long orderId, Long userId, BigDecimal totalAmount, BigDecimal usedPoint) {
+    this.orderId = orderId;
+    this.userId = userId;
+    this.totalAmount = totalAmount;
+    this.usedPoint = usedPoint;
   }
 
   public Long getOrderId() {
@@ -51,8 +84,16 @@ public class Payment extends BaseEntity {
     return totalAmount;
   }
 
-  public String getPaymentMethod() {
+  public PaymentMethod getPaymentMethod() {
     return paymentMethod;
+  }
+
+  public BigDecimal getUsedPoint() {
+    return usedPoint;
+  }
+
+  public String getExternalPaymentKey() {
+    return externalPaymentKey;
   }
 
   public String getTransactionId() {

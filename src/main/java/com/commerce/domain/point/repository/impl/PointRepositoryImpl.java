@@ -4,6 +4,7 @@ import com.commerce.domain.point.domain.Point;
 import com.commerce.domain.point.repository.PointRepository;
 import com.commerce.support.error.CoreException;
 import com.commerce.support.error.ErrorType;
+import java.util.Optional;
 import org.springframework.stereotype.Repository;
 
 @Repository
@@ -16,9 +17,8 @@ public class PointRepositoryImpl implements PointRepository {
   }
 
   @Override
-  public Point findByUserId(Long userId) {
-    return jpaPointRepository.findByUserId(userId)
-        .orElseThrow(() -> new CoreException(ErrorType.POINT_NOT_FOUND));
+  public Optional<Point> findByUserId(Long userId) {
+    return jpaPointRepository.findByUserId(userId);
   }
 
   @Override

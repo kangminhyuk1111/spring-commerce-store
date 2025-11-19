@@ -69,6 +69,10 @@ public class Order extends BaseEntity {
         || this.orderStatus.equals(OrderStatus.PAYMENT_SUCCESS);
   }
 
+  public void paid() {
+    this.orderStatus = OrderStatus.PAYMENT_SUCCESS;
+  }
+
   public String getOrderKey() {
     return orderKey;
   }
