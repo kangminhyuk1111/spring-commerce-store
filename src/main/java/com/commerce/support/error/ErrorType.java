@@ -1,10 +1,10 @@
 package com.commerce.support.error;
 
-import org.springframework.boot.autoconfigure.graphql.GraphQlProperties.Http;
 import org.springframework.http.HttpStatus;
 
 public enum ErrorType {
   INTERNAL_SERVER_ERROR(HttpStatus.INTERNAL_SERVER_ERROR, "알 수 없는 오류가 발생 했습니다. 나중에 다시 시도해주세요."),
+  NOT_FOUND_DATA(HttpStatus.NOT_FOUND, "해당 데이터를 찾을 수 없습니다."),
 
   PRODUCT_NOT_FOUND(HttpStatus.NOT_FOUND, "상품을 찾을 수 없습니다."),
 
@@ -36,7 +36,12 @@ public enum ErrorType {
   ORDER_STATUS_NOT_PENDING(HttpStatus.BAD_REQUEST, "이미 처리된 주문입니다."),
   ORDER_USER_INCORRECT(HttpStatus.BAD_REQUEST, "주문자 정보가 일치하지 않습니다."),
   ORDER_ITEM_NOT_FOUND(HttpStatus.NOT_FOUND, "주문 상품 정보가 존재하지 않습니다."),
-  ORDER_CAN_NOT_CANCEL(HttpStatus.BAD_REQUEST, "주문을 취소할 수 없는 상태입니다.");
+  ORDER_CAN_NOT_CANCEL(HttpStatus.BAD_REQUEST, "주문을 취소할 수 없는 상태입니다."), 
+  
+  PAYMENT_ALREADY_PAID(HttpStatus.BAD_REQUEST, "이미 지불된 결제 건입니다."),
+  PAYMENT_ALREADY_CREATED(HttpStatus.BAD_REQUEST, "이미 생성된 결제 건 입니다."),
+  PAYMENT_STATUS_NOT_PENDING(HttpStatus.BAD_REQUEST, "결제가 대기상태가 아닙니다."),
+  PAYMENT_PRICE_NOT_EQUALS(HttpStatus.BAD_REQUEST, "주문과 결제 금액이 올바르지 않습니다.");
 
   private final HttpStatus status;
   private final String message;

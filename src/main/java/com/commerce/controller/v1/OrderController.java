@@ -9,8 +9,6 @@ import com.commerce.domain.cart.domain.Cart;
 import com.commerce.domain.coupon.application.CouponService;
 import com.commerce.domain.order.application.OrderService;
 import com.commerce.domain.order.domain.Order;
-import com.commerce.domain.order.domain.OrderRecord;
-import com.commerce.domain.order.domain.OrderStatus;
 import com.commerce.domain.point.application.PointService;
 import com.commerce.domain.point.domain.Point;
 import com.commerce.support.response.ApiResponse;
@@ -68,7 +66,7 @@ public class OrderController {
       @PathVariable String orderKey
   ) {
     Order order = orderService.getOrder(userId, orderKey);
-    Point point = pointService.findPoint(userId);
+    Point point = pointService.getPoint(userId);
 
     return ApiResponse.success(OrderCheckoutResponse.of(order, point));
   }

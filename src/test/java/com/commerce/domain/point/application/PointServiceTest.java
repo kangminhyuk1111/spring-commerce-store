@@ -40,7 +40,7 @@ class PointServiceTest {
       Long userId = 1L;
 
       // when
-      Point point = pointService.findPoint(userId);
+      Point point = pointService.getPoint(userId);
 
       // then
       assertThat(point.getBalance()).isEqualTo(BigDecimal.ZERO);
@@ -49,7 +49,7 @@ class PointServiceTest {
     @Test
     void 계좌가_존재하지_않을_경우_예외를_반환한다() {
       // given & when & then
-      assertThatThrownBy(() -> pointService.findPoint(999L))
+      assertThatThrownBy(() -> pointService.getPoint(999L))
           .isInstanceOf(CoreException.class)
           .hasMessage(ErrorType.POINT_NOT_FOUND.getMessage());
     }

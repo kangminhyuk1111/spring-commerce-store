@@ -44,7 +44,7 @@ class PointBalanceServiceTest {
       pointBalanceService.chargeBalance(userId, amount);
 
       // then
-      assertThat(pointService.findPoint(userId).getBalance()).isEqualTo(amount);
+      assertThat(pointService.getPoint(userId).getBalance()).isEqualTo(amount);
     }
 
     @Test
@@ -58,7 +58,7 @@ class PointBalanceServiceTest {
       pointBalanceService.useBalance(userId, amount);
 
       // then
-      assertThat(pointService.findPoint(userId).getBalance()).isEqualTo(BigDecimal.ZERO);
+      assertThat(pointService.getPoint(userId).getBalance()).isEqualTo(BigDecimal.ZERO);
     }
 
     @Test
