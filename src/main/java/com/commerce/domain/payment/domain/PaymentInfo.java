@@ -1,4 +1,4 @@
-package com.commerce.controller.dto;
+package com.commerce.domain.payment.domain;
 
 import com.commerce.support.error.CoreException;
 import com.commerce.support.error.ErrorType;

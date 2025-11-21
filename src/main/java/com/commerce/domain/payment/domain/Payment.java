@@ -28,6 +28,9 @@ public class Payment extends BaseEntity {
   @Column(nullable = false)
   private BigDecimal usedPoint;
 
+  @Column(nullable = false)
+  private BigDecimal finalAmount;
+
   private String externalPaymentKey;
 
   private String transactionId;
@@ -66,6 +69,7 @@ public class Payment extends BaseEntity {
     this.userId = userId;
     this.totalAmount = totalAmount;
     this.usedPoint = usedPoint;
+    this.finalAmount = totalAmount.subtract(usedPoint);
   }
 
   public Long getOrderId() {
@@ -90,6 +94,10 @@ public class Payment extends BaseEntity {
 
   public BigDecimal getUsedPoint() {
     return usedPoint;
+  }
+
+  public BigDecimal getFinalAmount() {
+    return finalAmount;
   }
 
   public String getExternalPaymentKey() {

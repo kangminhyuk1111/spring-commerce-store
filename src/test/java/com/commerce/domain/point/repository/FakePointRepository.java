@@ -7,6 +7,7 @@ import com.commerce.utils.BaseReflectionUtils;
 import java.time.LocalDateTime;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Optional;
 import java.util.concurrent.atomic.AtomicLong;
 
 public class FakePointRepository implements PointRepository {
@@ -15,11 +16,10 @@ public class FakePointRepository implements PointRepository {
   private final AtomicLong idSequence = new AtomicLong(1);
 
   @Override
-  public Point findByUserId(Long userId) {
+  public Optional<Point> findByUserId(Long userId) {
     return store.values().stream()
         .filter(point -> point.getUserId().equals(userId))
-        .findFirst()
-        .orElseThrow(() -> new CoreException(ErrorType.POINT_NOT_FOUND));
+        .findFirst();
   }
 
   @Override

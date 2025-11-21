@@ -4,11 +4,12 @@ import com.commerce.domain.order.application.OrderService;
 import com.commerce.domain.order.domain.Order;
 import com.commerce.domain.order.domain.OrderStatus;
 import com.commerce.domain.payment.domain.Payment;
-import com.commerce.controller.dto.PaymentInfo;
+import com.commerce.domain.payment.domain.PaymentInfo;
 import com.commerce.domain.payment.domain.PaymentMethod;
 import com.commerce.domain.payment.domain.PaymentStatus;
 import com.commerce.domain.payment.repository.PaymentRepository;
 import com.commerce.domain.point.application.PointService;
+import com.commerce.domain.point.domain.Point;
 import com.commerce.support.error.CoreException;
 import com.commerce.support.error.ErrorType;
 import java.math.BigDecimal;
@@ -32,16 +33,18 @@ public class PaymentService {
    * 결제 버튼 클릭시 결제 정보 생성
    * */
   @Transactional
-  public void createPayment(Order order, PaymentInfo paymentInfo) {
+  public void createPayment(Long userId, String orderKey, BigDecimal usingPoint) {
+    Order order = orderService.getOrder(userId, orderKey);
+    Point point = pointService.getPoint(userId);
+    PaymentInfo paymentInfo = new PaymentInfo(point.getBalance(), usingPoint);
+
     paymentRepository.findByOrderId(order.getId())
         .filter(Payment::isPaid)
         .ifPresent(p -> {
           throw new CoreException(ErrorType.PAYMENT_ALREADY_PAID);
         });
 
-    BigDecimal totalPayAmount = order.getTotalPrice().subtract(paymentInfo.usingPoint());
-
-    Payment payment = new Payment(order.getId(), order.getUserId(), totalPayAmount, paymentInfo.usingPoint());
+    Payment payment = new Payment(order.getId(), order.getUserId(), order.getTotalPrice(), paymentInfo.usingPoint());
 
     paymentRepository.save(payment);
   }
@@ -85,14 +88,24 @@ public class PaymentService {
   }
 
   private void validatePayment(Order order, Payment payment) {
+    validatePaymentOwnership(order, payment);
+    validatePaymentStatus(payment);
+    validatePaymentAmount(order, payment);
+  }
+
+  private void validatePaymentOwnership(Order order, Payment payment) {
     if (!payment.getUserId().equals(order.getUserId())) {
       throw new CoreException(ErrorType.NOT_FOUND_DATA);
     }
+  }
 
+  private void validatePaymentStatus(Payment payment) {
     if (!payment.getPaymentStatus().equals(PaymentStatus.PENDING)) {
       throw new CoreException(ErrorType.PAYMENT_STATUS_NOT_PENDING);
     }
+  }
 
+  private void validatePaymentAmount(Order order, Payment payment) {
     if (!payment.getTotalAmount().equals(order.getTotalPrice())) {
       throw new CoreException(ErrorType.PAYMENT_PRICE_NOT_EQUALS);
     }

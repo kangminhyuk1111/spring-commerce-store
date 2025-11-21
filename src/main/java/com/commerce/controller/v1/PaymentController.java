@@ -1,17 +1,11 @@
 package com.commerce.controller.v1;
 
-import com.commerce.controller.dto.PaymentInfo;
 import com.commerce.controller.dto.request.CreatePaymentRequest;
-import com.commerce.domain.order.application.OrderService;
-import com.commerce.domain.order.domain.Order;
 import com.commerce.domain.payment.application.PaymentService;
-import com.commerce.domain.point.application.PointService;
-import com.commerce.domain.point.domain.Point;
 import com.commerce.support.response.ApiResponse;
 import java.math.BigDecimal;
 import org.hibernate.mapping.Any;
 import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
@@ -20,22 +14,13 @@ import org.springframework.web.bind.annotation.RestController;
 public class PaymentController {
 
   private final PaymentService paymentService;
-  private final PointService pointService;
-  private final OrderService orderService;
-
-  public PaymentController(PaymentService paymentService, PointService pointService,
-      OrderService orderService) {
+  public PaymentController(PaymentService paymentService) {
     this.paymentService = paymentService;
-    this.pointService = pointService;
-    this.orderService = orderService;
   }
 
   @PostMapping("/v1/payment")
   public ApiResponse<Any> createPayment(Long userId, @RequestBody CreatePaymentRequest request) {
-    Order order = orderService.getOrder(userId, request.orderKey());
-    Point point = pointService.getPoint(userId);
-    PaymentInfo paymentInfo = new PaymentInfo(point.getBalance(), request.usingPoint());
-    paymentService.createPayment(order, paymentInfo);
+    paymentService.createPayment(userId, request.orderKey(), request.usingPoint());
     return ApiResponse.success();
   }
 
