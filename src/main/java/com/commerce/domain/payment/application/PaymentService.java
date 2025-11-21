@@ -66,7 +66,7 @@ public class PaymentService {
     * */
 
     payment.success(externalPaymentKey, PaymentMethod.CREDIT_CARD, "카드사, 결제사에서 발급한 transactionId");
-    order.paid();
+    orderService.paid(orderKey);
 
     pointService.usePoint(order.getUserId(), payment.getUsedPoint());
   }

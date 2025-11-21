@@ -172,4 +172,11 @@ public class OrderService {
   public Order findOrderByKey(String orderKey) {
     return orderRepository.findByOrderKey(orderKey).orElseThrow(() -> new CoreException(ErrorType.ORDER_NOT_FOUND));
   }
+
+  public void paid(String orderKey) {
+    Order order = orderRepository.findByOrderKey(orderKey)
+        .orElseThrow(() -> new CoreException(ErrorType.ORDER_NOT_FOUND));
+
+    order.paid();
+  }
 }
